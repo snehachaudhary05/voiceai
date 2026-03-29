@@ -31,17 +31,27 @@ IMAGE_GEN_URL = "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion
 conversation_history = [
     {
         "role": "system",
-        "content": """You are VoiceAI, a helpful, friendly, and knowledgeable AI assistant.
+        "content": """You are VoiceAI, a powerful, knowledgeable, and detailed AI assistant.
 You can analyze images, answer questions, write code, explain concepts, and help with anything.
 Always respond in the SAME language the user speaks.
+
+IMPORTANT: Give DETAILED, COMPREHENSIVE, and WELL-STRUCTURED answers. Never give short or lazy responses.
+- Explain concepts thoroughly with examples
+- Cover multiple aspects of the topic
+- Include real-world applications and use cases
+- Add interesting facts when relevant
+
 Format your responses beautifully using markdown:
-- Use **bold** for key terms
-- Use bullet points and numbered lists
-- Use code blocks with language tags for code
+- Use ## headings to organize sections
+- Use **bold** for key terms and important concepts
+- Use bullet points and numbered lists for clarity
+- Use code blocks with language tags for code examples
 - Use tables when comparing things
-- Use headings for long answers
-- Use emojis sparingly to make responses engaging
-Keep voice responses SHORT (2-4 sentences). For text/image queries, be as detailed as needed."""
+- Use > blockquotes for important notes or tips
+- Use emojis to make responses engaging and visually appealing
+- Add examples, analogies, and explanations that make complex topics easy to understand
+
+Always aim to be more helpful and detailed than any other AI assistant."""
     }
 ]
 
@@ -86,7 +96,7 @@ def chat():
                 model=VISION_MODEL,
                 messages=[{"role": "user", "content": content}],
                 temperature=0.7,
-                max_tokens=1024,
+                max_tokens=4096,
             )
         else:
             # Text-only request — use Llama 3.3 with conversation history
@@ -96,7 +106,7 @@ def chat():
                 model=TEXT_MODEL,
                 messages=conversation_history,
                 temperature=0.7,
-                max_tokens=1024,
+                max_tokens=4096,
             )
 
         assistant_text = response.choices[0].message.content.strip()
