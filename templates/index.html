@@ -113,6 +113,13 @@
     .thinking span:nth-child(3){animation-delay:.4s}
     @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1.1);opacity:1}}
 
+    /* Generated image */
+    .gen-image{max-width:100%;border-radius:14px;margin:8px 0;border:1px solid rgba(118,185,0,.2);cursor:pointer;transition:transform .2s}
+    .gen-image:hover{transform:scale(1.02)}
+    .gen-label{font-size:11px;color:#76b900;margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+    .download-btn{display:inline-block;margin-top:8px;padding:6px 14px;background:rgba(118,185,0,.15);border:1px solid rgba(118,185,0,.3);color:#76b900;border-radius:20px;font-size:12px;cursor:pointer;text-decoration:none;transition:all .2s}
+    .download-btn:hover{background:#76b900;color:#000}
+
     #img-input{display:none}
 
     @media(max-width:600px){
@@ -243,9 +250,66 @@ function speakText(text){
   window.speechSynthesis.speak(utt);
 }
 
+// ── Detect if user wants image generation ──
+function isImageGenRequest(text){
+  var t = text.toLowerCase();
+  var keywords = ['generate','create','draw','make','design','paint','sketch','imagine','produce','render'];
+  var imgWords = ['image','picture','photo','illustration','art','artwork','poster','wallpaper','logo','icon','banner','portrait','landscape','scene'];
+  var hasKeyword = keywords.some(function(k){ return t.includes(k); });
+  var hasImgWord = imgWords.some(function(w){ return t.includes(w); });
+  return hasKeyword && hasImgWord;
+}
+
+// ── Add generated image to chat ──
+function addGenImage(imgSrc, prompt){
+  if(welcome) welcome.style.display = 'none';
+  var d = document.createElement('div');
+  d.className = 'message assistant';
+  d.innerHTML = '<div class="avatar">&#9889;</div><div class="bubble">' +
+    '<div class="gen-label">Generated Image</div>' +
+    '<img class="gen-image" src="'+imgSrc+'" alt="'+prompt+'"/>' +
+    '<br><a class="download-btn" href="'+imgSrc+'" download="voiceai-generated.jpg">Download Image</a>' +
+    '</div>';
+  chatEl.appendChild(d);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+// ── Generate image ──
+async function generateImage(prompt){
+  if(busy) return; busy = true;
+  addMsg('user', prompt);
+  showThinking();
+  setStatus('Generating image... this may take 15-30 seconds', 'active');
+
+  try{
+    var r = await fetch('/generate', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({prompt: prompt})});
+    var d = await r.json();
+    if(d.error) throw new Error(d.error);
+    hideThinking();
+    addGenImage(d.image, prompt);
+    setStatus('Image generated!', 'active');
+    speakText('Here is your generated image!');
+  } catch(e){
+    hideThinking();
+    addMsg('assistant', 'Image generation failed: '+e.message);
+    setStatus('Error — try again', 'error');
+    busy=false;
+  }
+}
+
 // ── Send to AI ──
 async function sendToAI(text, images){
-  if(busy) return; busy = true;
+  if(busy) return;
+
+  // Check if user wants to generate an image
+  if(!images || images.length === 0){
+    if(isImageGenRequest(text)){
+      generateImage(text);
+      return;
+    }
+  }
+
+  busy = true;
   addMsg('user', text, images);
   showThinking();
   setStatus('Thinking...', 'active');

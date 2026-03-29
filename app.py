@@ -1,9 +1,10 @@
 """
-VoiceAI — Smart AI Assistant with Voice + Vision + Text
-Powered by NVIDIA NIM Free APIs (Llama 3.3 70B + Qwen 3.5 Vision)
+VoiceAI — Smart AI Assistant with Voice + Vision + Text + Image Generation
+Powered by NVIDIA NIM Free APIs
 """
 
 import os
+import requests as http_requests
 from pathlib import Path
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
@@ -24,6 +25,7 @@ client = OpenAI(
 
 TEXT_MODEL = "meta/llama-3.3-70b-instruct"
 VISION_MODEL = "qwen/qwen3.5-397b-a17b"
+IMAGE_GEN_URL = "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-3-medium"
 
 # Conversation history (text-only, in-memory)
 conversation_history = [
@@ -109,6 +111,44 @@ def chat():
 
     except Exception as e:
         print(f"Chat error: {e}", flush=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/generate", methods=["POST"])
+def generate():
+    """Generates an image from text prompt using Stable Diffusion 3."""
+    data = request.get_json()
+    prompt = data.get("prompt", "").strip()
+
+    if not prompt:
+        return jsonify({"error": "Empty prompt"}), 400
+
+    try:
+        resp = http_requests.post(
+            IMAGE_GEN_URL,
+            headers={
+                "Authorization": f"Bearer {NVIDIA_API_KEY}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+            },
+            json={
+                "prompt": prompt,
+                "negative_prompt": "blurry, low quality, distorted, deformed",
+                "seed": 0,
+                "steps": 40,
+                "cfg_scale": 7.5,
+                "height": 1024,
+                "width": 1024,
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        result = resp.json()
+        img_b64 = result["artifacts"][0]["base64"]
+        return jsonify({"image": f"data:image/jpeg;base64,{img_b64}"})
+
+    except Exception as e:
+        print(f"Image gen error: {e}", flush=True)
         return jsonify({"error": str(e)}), 500
 
 
