@@ -21,6 +21,7 @@ NVIDIA_API_KEY = os.getenv("NVIDIA_API_KEY")
 client = OpenAI(
     base_url="https://integrate.api.nvidia.com/v1",
     api_key=NVIDIA_API_KEY,
+    timeout=120,
 )
 
 TEXT_MODEL = "meta/llama-3.3-70b-instruct"
