@@ -180,7 +180,7 @@ function getSpeechRecognition(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
   if(!SR) return null;
   var r = new SR();
-  r.continuous = true;
+  r.continuous = false;
   r.interimResults = true;
   r.maxAlternatives = 1;
   return r;
@@ -228,17 +228,15 @@ micBtn.addEventListener('click', function(){
   setStatus('Listening... speak now, click stop when done', 'active');
 
   recognition.onresult = function(e){
-    var interim = '', final = '';
+    var transcript = '';
     for(var i=0; i<e.results.length; i++){
-      if(e.results[i].isFinal){
-        final += e.results[i][0].transcript;
-      } else {
-        interim += e.results[i][0].transcript;
-      }
+      transcript = e.results[i][0].transcript;
     }
-    spokenText = final;
-    var display = (final + ' ' + interim).trim();
-    if(display) setStatus('"' + display + '"', 'active');
+    transcript = transcript.trim();
+    if(e.results[e.results.length-1].isFinal){
+      spokenText = transcript;
+    }
+    if(transcript) setStatus('"' + transcript + '"', 'active');
   };
 
   recognition.onerror = function(e){
