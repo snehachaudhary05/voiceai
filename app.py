@@ -25,7 +25,7 @@ client = OpenAI(
 )
 
 TEXT_MODEL = "meta/llama-3.3-70b-instruct"
-VISION_MODEL = "qwen/qwen3.5-397b-a17b"
+VISION_MODEL = "meta/llama-3.2-11b-vision-instruct"
 IMAGE_GEN_URL = "https://ai.api.nvidia.com/v1/genai/stabilityai/stable-diffusion-3-medium"
 
 # Conversation history (text-only, in-memory)
