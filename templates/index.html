@@ -3,105 +3,180 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NVIDIA Voice Assistant</title>
+  <title>VoiceAI — Smart Assistant</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
-    body{font-family:'Segoe UI',sans-serif;background:#0a0a0f;color:#e0e0e0;height:100vh;display:flex;flex-direction:column}
-    header{background:linear-gradient(135deg,#1a1a2e,#16213e);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #76b900;box-shadow:0 2px 20px rgba(118,185,0,.2)}
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e0e0e0;height:100vh;display:flex;flex-direction:column}
+
+    /* Header */
+    header{background:linear-gradient(135deg,#0d0d1a,#1a1a2e);padding:14px 24px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(118,185,0,.4);box-shadow:0 2px 24px rgba(118,185,0,.15)}
     .logo{display:flex;align-items:center;gap:12px}
-    .logo-icon{width:38px;height:38px;background:#76b900;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px}
-    .logo h1{font-size:20px;font-weight:700;color:#fff}
-    .logo p{font-size:11px;color:#76b900;margin-top:1px}
-    .badges{display:flex;gap:8px}
-    .badge{background:rgba(118,185,0,.1);border:1px solid rgba(118,185,0,.3);color:#76b900;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
-    #chat-container{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
-    #chat-container::-webkit-scrollbar{width:6px}
-    #chat-container::-webkit-scrollbar-thumb{background:#76b900;border-radius:3px}
-    .message{display:flex;gap:12px;max-width:75%;animation:fadeIn .3s ease}
-    @keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+    .logo-icon{width:40px;height:40px;background:linear-gradient(135deg,#76b900,#5a9e00);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 0 16px rgba(118,185,0,.3)}
+    .logo h1{font-size:20px;font-weight:700;color:#fff;letter-spacing:-.5px}
+    .logo p{font-size:11px;color:#76b900;margin-top:1px;font-weight:500}
+    .badges{display:flex;gap:6px;flex-wrap:wrap}
+    .badge{background:rgba(118,185,0,.08);border:1px solid rgba(118,185,0,.25);color:#76b900;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+    /* Chat */
+    #chat-container{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+    #chat-container::-webkit-scrollbar{width:5px}
+    #chat-container::-webkit-scrollbar-thumb{background:rgba(118,185,0,.4);border-radius:3px}
+    .message{display:flex;gap:12px;max-width:82%;animation:fadeIn .35s ease}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
     .message.user{align-self:flex-end;flex-direction:row-reverse}
     .message.assistant{align-self:flex-start}
-    .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-    .message.user .avatar{background:#1e3a5f}
-    .message.assistant .avatar{background:rgba(118,185,0,.2);border:1px solid #76b900}
-    .bubble{padding:12px 16px;border-radius:18px;font-size:15px;line-height:1.5}
-    .message.user .bubble{background:#1a3a5c;border-bottom-right-radius:4px;color:#e0f0ff}
-    .message.assistant .bubble{background:#1a1a2e;border:1px solid rgba(118,185,0,.2);border-bottom-left-radius:4px}
-    #welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:12px;color:#555}
-    #welcome .icon{font-size:56px}
-    #welcome h2{font-size:22px;color:#888}
-    #welcome p{font-size:14px;text-align:center;max-width:360px}
-    #controls{background:#0f0f1a;border-top:1px solid #222;padding:20px 24px}
-    .controls-inner{max-width:800px;margin:0 auto;display:flex;align-items:center;gap:14px}
-    #mic-btn{width:60px;height:60px;border-radius:50%;border:none;background:#76b900;color:#000;font-size:24px;cursor:pointer;transition:all .2s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
-    #mic-btn:hover{background:#8fd400;transform:scale(1.05)}
-    #mic-btn.recording{background:#ff4444;animation:pulse 1.2s infinite}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,68,68,.6)}70%{box-shadow:0 0 0 18px rgba(255,68,68,0)}100%{box-shadow:0 0 0 0 rgba(255,68,68,0)}}
-    #text-input{flex:1;background:#1a1a2e;border:1px solid #333;border-radius:30px;padding:14px 20px;font-size:15px;color:#e0e0e0;outline:none;transition:border .2s}
-    #text-input:focus{border-color:#76b900}
-    #text-input::placeholder{color:#555}
-    #send-btn{width:48px;height:48px;border-radius:50%;border:none;background:#1a3a5c;color:#76b900;font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
-    #send-btn:hover{background:#76b900;color:#000}
-    #reset-btn{width:44px;height:44px;border-radius:50%;border:1px solid #333;background:transparent;color:#666;font-size:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
-    #reset-btn:hover{border-color:#76b900;color:#76b900}
-    #status{text-align:center;font-size:12px;color:#555;margin-bottom:10px;min-height:18px}
+    .avatar{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-weight:700}
+    .message.user .avatar{background:linear-gradient(135deg,#1e3a5f,#2a5080);color:#7ec8ff}
+    .message.assistant .avatar{background:linear-gradient(135deg,rgba(118,185,0,.2),rgba(118,185,0,.1));border:1px solid rgba(118,185,0,.4);color:#76b900}
+    .bubble{padding:14px 18px;border-radius:20px;font-size:14.5px;line-height:1.65}
+    .message.user .bubble{background:linear-gradient(135deg,#1a3a5c,#1e4470);border-bottom-right-radius:4px;color:#d0e8ff}
+    .message.assistant .bubble{background:linear-gradient(135deg,#141428,#1a1a2e);border:1px solid rgba(118,185,0,.15);border-bottom-left-radius:4px;min-width:200px}
+
+    /* Markdown styles inside assistant bubbles */
+    .bubble h1,.bubble h2,.bubble h3{color:#76b900;margin:12px 0 6px;font-weight:700}
+    .bubble h1{font-size:18px} .bubble h2{font-size:16px} .bubble h3{font-size:14.5px}
+    .bubble p{margin:6px 0}
+    .bubble ul,.bubble ol{margin:6px 0 6px 20px}
+    .bubble li{margin:3px 0}
+    .bubble strong{color:#8fd400}
+    .bubble em{color:#a0c8ff}
+    .bubble code{background:rgba(118,185,0,.1);color:#8fd400;padding:2px 6px;border-radius:4px;font-size:13px;font-family:'Cascadia Code','Fira Code',monospace}
+    .bubble pre{background:#0d0d18;border:1px solid #222;border-radius:10px;padding:14px;margin:10px 0;overflow-x:auto}
+    .bubble pre code{background:none;padding:0;color:#e0e0e0}
+    .bubble blockquote{border-left:3px solid #76b900;padding:6px 14px;margin:8px 0;background:rgba(118,185,0,.05);border-radius:0 8px 8px 0}
+    .bubble table{border-collapse:collapse;margin:8px 0;width:100%}
+    .bubble th{background:rgba(118,185,0,.15);color:#76b900;padding:8px 12px;text-align:left;font-size:13px}
+    .bubble td{padding:6px 12px;border-top:1px solid #222;font-size:13px}
+    .bubble hr{border:none;border-top:1px solid #333;margin:12px 0}
+    .bubble a{color:#76b900;text-decoration:underline}
+
+    /* User image previews in chat */
+    .user-images{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+    .user-images img{width:80px;height:80px;object-fit:cover;border-radius:10px;border:1px solid #333}
+
+    /* Welcome */
+    #welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:16px;color:#555}
+    #welcome .icon{font-size:64px;filter:drop-shadow(0 0 20px rgba(118,185,0,.3))}
+    #welcome h2{font-size:24px;color:#ccc;font-weight:600}
+    #welcome p{font-size:14px;text-align:center;max-width:400px;line-height:1.6;color:#777}
+    .features{display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center}
+    .feature{background:rgba(118,185,0,.06);border:1px solid rgba(118,185,0,.15);border-radius:12px;padding:10px 16px;font-size:12px;color:#999;display:flex;align-items:center;gap:8px}
+    .feature span{font-size:18px}
+
+    /* Controls */
+    #controls{background:#0a0a14;border-top:1px solid #1a1a2a;padding:16px 24px}
+    #status{text-align:center;font-size:11px;color:#555;margin-bottom:8px;min-height:16px}
     #status.active{color:#76b900}
     #status.error{color:#ff6666}
-    #confirm-bar{display:none;max-width:800px;margin:0 auto 12px;background:#1a1a2e;border:1px solid rgba(118,185,0,.3);border-radius:16px;padding:10px 16px;align-items:center;gap:10px}
+
+    /* Confirm bar */
+    #confirm-bar{display:none;max-width:700px;margin:0 auto 10px;background:#141428;border:1px solid rgba(118,185,0,.3);border-radius:14px;padding:10px 14px;align-items:center;gap:10px}
     #confirm-bar.show{display:flex}
-    #confirm-text{flex:1;color:#e0e0e0;font-size:14px;line-height:1.4;max-height:60px;overflow-y:auto}
-    .confirm-btn{width:42px;height:42px;border-radius:50%;border:none;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
+    #confirm-text{flex:1;color:#e0e0e0;font-size:13px;line-height:1.4;max-height:50px;overflow-y:auto}
+    .confirm-btn{width:38px;height:38px;border-radius:50%;border:none;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0}
     #confirm-yes{background:#76b900;color:#000}
     #confirm-yes:hover{background:#8fd400;transform:scale(1.1)}
     #confirm-no{background:#333;color:#ff6666}
     #confirm-no:hover{background:#ff4444;color:#fff;transform:scale(1.1)}
-    .thinking{display:flex;gap:4px;padding:12px 16px}
+
+    /* Image preview strip */
+    #preview-strip{display:none;max-width:700px;margin:0 auto 8px;gap:8px;flex-wrap:wrap}
+    #preview-strip.show{display:flex}
+    .preview-thumb{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;border:2px solid #333}
+    .preview-thumb img{width:100%;height:100%;object-fit:cover}
+    .preview-thumb .remove{position:absolute;top:2px;right:2px;width:20px;height:20px;background:rgba(0,0,0,.7);color:#ff6666;border:none;border-radius:50%;font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .preview-thumb .remove:hover{background:#ff4444;color:#fff}
+
+    /* Input row */
+    .controls-inner{max-width:700px;margin:0 auto;display:flex;align-items:center;gap:10px}
+    #img-btn{width:44px;height:44px;border-radius:50%;border:1px solid #333;background:transparent;color:#888;font-size:20px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #img-btn:hover{border-color:#76b900;color:#76b900}
+    #img-btn.has-images{border-color:#76b900;color:#76b900;background:rgba(118,185,0,.1)}
+    #mic-btn{width:48px;height:48px;border-radius:50%;border:none;background:#76b900;color:#000;font-size:20px;cursor:pointer;transition:all .2s;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+    #mic-btn:hover{background:#8fd400;transform:scale(1.05)}
+    #mic-btn.recording{background:#ff4444;animation:pulse 1.2s infinite}
+    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,68,68,.5)}70%{box-shadow:0 0 0 14px rgba(255,68,68,0)}100%{box-shadow:0 0 0 0 rgba(255,68,68,0)}}
+    #text-input{flex:1;background:#141428;border:1px solid #2a2a3a;border-radius:26px;padding:12px 18px;font-size:14.5px;color:#e0e0e0;outline:none;transition:border .2s}
+    #text-input:focus{border-color:#76b900}
+    #text-input::placeholder{color:#555}
+    #send-btn{width:44px;height:44px;border-radius:50%;border:none;background:#1a3a5c;color:#76b900;font-size:18px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #send-btn:hover{background:#76b900;color:#000}
+    #reset-btn{width:38px;height:38px;border-radius:50%;border:1px solid #2a2a3a;background:transparent;color:#555;font-size:16px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    #reset-btn:hover{border-color:#ff6666;color:#ff6666}
+
+    .thinking{display:flex;gap:5px;padding:8px 4px}
     .thinking span{width:8px;height:8px;background:#76b900;border-radius:50%;animation:bounce 1.2s infinite}
     .thinking span:nth-child(2){animation-delay:.2s}
     .thinking span:nth-child(3){animation-delay:.4s}
-    @keyframes bounce{0%,80%,100%{transform:scale(.7);opacity:.5}40%{transform:scale(1.1);opacity:1}}
+    @keyframes bounce{0%,80%,100%{transform:scale(.6);opacity:.4}40%{transform:scale(1.1);opacity:1}}
+
+    #img-input{display:none}
+
+    @media(max-width:600px){
+      .badges{display:none}
+      .message{max-width:92%}
+      header{padding:12px 16px}
+      #chat-container{padding:16px}
+      #controls{padding:12px 16px}
+    }
   </style>
 </head>
 <body>
 <header>
   <div class="logo">
     <div class="logo-icon">&#9889;</div>
-    <div><h1>NVIDIA Voice Assistant</h1><p>Powered by NIM Free APIs</p></div>
+    <div><h1>VoiceAI</h1><p>Powered by NVIDIA NIM</p></div>
   </div>
   <div class="badges">
     <span class="badge">Llama 3.3 70B</span>
-    <span class="badge">TTS</span>
-    <span class="badge">9 Languages</span>
+    <span class="badge">Qwen 3.5 Vision</span>
+    <span class="badge">Voice</span>
+    <span class="badge">Multilingual</span>
   </div>
 </header>
 
 <div id="chat-container">
   <div id="welcome">
-    <div class="icon">&#127897;</div>
-    <h2>Hi! I am your NVIDIA Voice Assistant</h2>
-    <p>Click mic and speak, or type below. I reply in your language!</p>
+    <div class="icon">&#10024;</div>
+    <h2>Hi! I'm VoiceAI</h2>
+    <p>Your free AI assistant — talk to me, type, or upload photos. I can see, hear, and help with anything!</p>
+    <div class="features">
+      <div class="feature"><span>&#127908;</span> Voice Chat</div>
+      <div class="feature"><span>&#128248;</span> Photo Analysis</div>
+      <div class="feature"><span>&#127760;</span> Multilingual</div>
+      <div class="feature"><span>&#9889;</span> Free &amp; Fast</div>
+    </div>
   </div>
 </div>
 
 <div id="controls">
-  <div id="status">Ready - click mic to speak or type below</div>
+  <div id="status">Ready — speak, type, or upload photos</div>
   <div id="confirm-bar">
     <div id="confirm-text"></div>
     <button class="confirm-btn" id="confirm-no" title="Cancel">&#10006;</button>
     <button class="confirm-btn" id="confirm-yes" title="Send">&#10004;</button>
   </div>
+  <div id="preview-strip"></div>
   <div class="controls-inner">
-    <button id="mic-btn" title="Click to record">&#127897;</button>
-    <input id="text-input" type="text" placeholder="Or type your message here..."/>
+    <button id="img-btn" title="Upload photos">&#128247;</button>
+    <input id="img-input" type="file" accept="image/*" multiple/>
+    <button id="mic-btn" title="Voice input">&#127908;</button>
+    <input id="text-input" type="text" placeholder="Ask anything or describe your photos..."/>
     <button id="send-btn" title="Send">&#10148;</button>
-    <button id="reset-btn" title="Clear chat">&#128260;</button>
+    <button id="reset-btn" title="New chat">&#128260;</button>
   </div>
 </div>
 
 <script>
+// ── Elements ──
 var chatEl     = document.getElementById('chat-container');
 var welcome    = document.getElementById('welcome');
 var micBtn     = document.getElementById('mic-btn');
+var imgBtn     = document.getElementById('img-btn');
+var imgInput   = document.getElementById('img-input');
 var txtInput   = document.getElementById('text-input');
 var sendBtn    = document.getElementById('send-btn');
 var resetBtn   = document.getElementById('reset-btn');
@@ -110,16 +185,38 @@ var confirmBar = document.getElementById('confirm-bar');
 var confirmTxt = document.getElementById('confirm-text');
 var confirmYes = document.getElementById('confirm-yes');
 var confirmNo  = document.getElementById('confirm-no');
-var busy = false;
-var pendingText = '';
+var previewStrip = document.getElementById('preview-strip');
+var busy = false, pendingText = '';
+var uploadedImages = []; // array of {base64, name}
+
+// ── Markdown renderer config ──
+marked.setOptions({
+  highlight: function(code, lang){
+    if(lang && hljs.getLanguage(lang)) return hljs.highlight(code,{language:lang}).value;
+    return hljs.highlightAuto(code).value;
+  },
+  breaks: true
+});
 
 function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = cls || ''; }
 
-function addMsg(role, text){
+function renderMarkdown(text){
+  try{ return marked.parse(text); }
+  catch(e){ return text.replace(/\n/g,'<br>'); }
+}
+
+function addMsg(role, text, images){
   if(welcome) welcome.style.display = 'none';
   var d = document.createElement('div');
   d.className = 'message ' + role;
-  d.innerHTML = '<div class="avatar">' + (role==='user'?'U':'A') + '</div><div class="bubble">' + text + '</div>';
+  var imgHtml = '';
+  if(images && images.length > 0){
+    imgHtml = '<div class="user-images">';
+    for(var i=0;i<images.length;i++) imgHtml += '<img src="'+images[i].base64+'" alt="uploaded"/>';
+    imgHtml += '</div>';
+  }
+  var content = role === 'assistant' ? renderMarkdown(text) : text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  d.innerHTML = '<div class="avatar">' + (role==='user'?'&#128100;':'&#9889;') + '</div><div class="bubble">' + imgHtml + content + '</div>';
   chatEl.appendChild(d);
   chatEl.scrollTop = chatEl.scrollHeight;
 }
@@ -128,53 +225,107 @@ function showThinking(){
   if(welcome) welcome.style.display = 'none';
   var d = document.createElement('div');
   d.className = 'message assistant'; d.id = 'thinking';
-  d.innerHTML = '<div class="avatar">A</div><div class="bubble"><div class="thinking"><span></span><span></span><span></span></div></div>';
+  d.innerHTML = '<div class="avatar">&#9889;</div><div class="bubble"><div class="thinking"><span></span><span></span><span></span></div></div>';
   chatEl.appendChild(d); chatEl.scrollTop = chatEl.scrollHeight;
 }
 function hideThinking(){ var t = document.getElementById('thinking'); if(t) t.remove(); }
 
-function detectLang(t){
-  for(var i=0;i<t.length;i++){
-    var c = t.charCodeAt(i);
-    if(c>=0x0900 && c<=0x097F) return 'hi';
-    if(c>=0x4E00 && c<=0x9FFF) return 'zh';
-    if(c>=0x3040 && c<=0x30FF) return 'ja';
-  }
-  return 'en';
-}
-
-// Web Speech API for transcription (browser handles encoding natively)
-
+// ── TTS ──
 function speakText(text){
   if(!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
-  var utt = new SpeechSynthesisUtterance(text);
+  var clean = text.replace(/```[\s\S]*?```/g,'code block').replace(/[*#_~`>|]/g,'').replace(/\[([^\]]+)\]\([^)]+\)/g,'$1');
+  if(clean.length > 500) clean = clean.substring(0,500) + '... and more.';
+  var utt = new SpeechSynthesisUtterance(clean);
   utt.rate = 1; utt.pitch = 1; utt.volume = 1;
-  utt.onend = function(){ setStatus('Ready - click mic to speak or type'); busy=false; };
+  utt.onend = function(){ setStatus('Ready'); busy=false; };
   utt.onerror = function(){ setStatus('Ready'); busy=false; };
   window.speechSynthesis.speak(utt);
 }
 
-async function sendToAI(text){
+// ── Send to AI ──
+async function sendToAI(text, images){
   if(busy) return; busy = true;
-  addMsg('user', text); showThinking(); setStatus('Thinking...', 'active');
+  addMsg('user', text, images);
+  showThinking();
+  setStatus('Thinking...', 'active');
+
+  var body = {text: text};
+  if(images && images.length > 0){
+    body.images = images.map(function(img){ return img.base64; });
+  }
+
   try{
-    var r = await fetch('/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({text: text})});
+    var r = await fetch('/chat', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
     var d = await r.json();
     if(d.error) throw new Error(d.error);
-    hideThinking(); addMsg('assistant', d.text);
+    hideThinking();
+    addMsg('assistant', d.text);
     setStatus('Speaking...', 'active');
     speakText(d.text);
   } catch(e){
-    hideThinking(); addMsg('assistant', 'Error: '+e.message);
-    setStatus('Error - try again', 'error'); busy=false;
+    hideThinking();
+    addMsg('assistant', 'Error: '+e.message);
+    setStatus('Error — try again', 'error');
+    busy=false;
   }
 }
 
-// Browser Web Speech API with confirm/cancel UI
-var recognition = null;
-var recording = false;
-var spokenText = '';
+// ── Image upload ──
+imgBtn.addEventListener('click', function(){ imgInput.click(); });
+
+imgInput.addEventListener('change', function(e){
+  var files = Array.from(e.target.files);
+  files.forEach(function(file){
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      uploadedImages.push({base64: ev.target.result, name: file.name});
+      updatePreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  imgInput.value = '';
+});
+
+function updatePreview(){
+  previewStrip.innerHTML = '';
+  if(uploadedImages.length === 0){
+    previewStrip.classList.remove('show');
+    imgBtn.classList.remove('has-images');
+    return;
+  }
+  previewStrip.classList.add('show');
+  imgBtn.classList.add('has-images');
+  uploadedImages.forEach(function(img, idx){
+    var thumb = document.createElement('div');
+    thumb.className = 'preview-thumb';
+    thumb.innerHTML = '<img src="'+img.base64+'"/><button class="remove" data-idx="'+idx+'">&#10006;</button>';
+    previewStrip.appendChild(thumb);
+  });
+  previewStrip.querySelectorAll('.remove').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      uploadedImages.splice(parseInt(this.dataset.idx), 1);
+      updatePreview();
+    });
+  });
+}
+
+// ── Send button ──
+sendBtn.addEventListener('click', function(){
+  var t = txtInput.value.trim();
+  if(!t && uploadedImages.length === 0) return;
+  if(uploadedImages.length > 0 && !t) t = 'What do you see in this image?';
+  var imgs = uploadedImages.slice();
+  uploadedImages = [];
+  updatePreview();
+  txtInput.value = '';
+  sendToAI(t, imgs);
+});
+txtInput.addEventListener('keydown', function(e){ if(e.key==='Enter') sendBtn.click(); });
+
+// ── Voice (Web Speech API) ──
+var recognition = null, recording = false, spokenText = '';
 
 function getSpeechRecognition(){
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -190,100 +341,98 @@ function showConfirm(text){
   pendingText = text;
   confirmTxt.textContent = '"' + text + '"';
   confirmBar.classList.add('show');
-  setStatus('Review your message — click tick to send or cross to cancel', 'active');
+  setStatus('Review — tick to send, cross to cancel', 'active');
 }
-
-function hideConfirm(){
-  confirmBar.classList.remove('show');
-  pendingText = '';
-}
+function hideConfirm(){ confirmBar.classList.remove('show'); pendingText = ''; }
 
 confirmYes.addEventListener('click', function(){
   var text = pendingText;
   hideConfirm();
-  if(text) sendToAI(text);
+  if(text){
+    var imgs = uploadedImages.slice();
+    uploadedImages = [];
+    updatePreview();
+    sendToAI(text, imgs);
+  }
 });
-
-confirmNo.addEventListener('click', function(){
-  hideConfirm();
-  setStatus('Cancelled — click mic to try again');
-});
+confirmNo.addEventListener('click', function(){ hideConfirm(); setStatus('Cancelled'); });
 
 micBtn.addEventListener('click', function(){
-  if(recording){
-    if(recognition) recognition.stop();
-    return;
-  }
+  if(recording){ if(recognition) recognition.stop(); return; }
 
   recognition = getSpeechRecognition();
-  if(!recognition){
-    setStatus('Speech recognition not supported — use Chrome or type below', 'error');
-    return;
-  }
+  if(!recognition){ setStatus('Speech not supported — use Chrome', 'error'); return; }
 
-  recording = true;
-  spokenText = '';
+  recording = true; spokenText = '';
   micBtn.classList.add('recording');
   micBtn.innerHTML = '&#9632;';
-  setStatus('Listening... speak now, click stop when done', 'active');
+  setStatus('Listening... speak now', 'active');
 
   recognition.onresult = function(e){
     var transcript = '';
-    for(var i=0; i<e.results.length; i++){
-      transcript = e.results[i][0].transcript;
-    }
+    for(var i=0;i<e.results.length;i++) transcript = e.results[i][0].transcript;
     transcript = transcript.trim();
-    if(e.results[e.results.length-1].isFinal){
-      spokenText = transcript;
-    }
-    if(transcript) setStatus('"' + transcript + '"', 'active');
+    if(e.results[e.results.length-1].isFinal) spokenText = transcript;
+    if(transcript) setStatus('"'+transcript+'"', 'active');
   };
 
   recognition.onerror = function(e){
-    console.log('Speech error:', e.error);
-    recording = false;
-    micBtn.classList.remove('recording');
-    micBtn.innerHTML = '&#127897;';
-    if(e.error === 'no-speech'){
-      setStatus('No speech heard — click mic and speak', 'error');
-    } else if(e.error === 'not-allowed'){
-      setStatus('Mic permission denied — allow mic in browser settings', 'error');
-    } else {
-      setStatus('Mic error: ' + e.error, 'error');
-    }
+    recording = false; micBtn.classList.remove('recording'); micBtn.innerHTML = '&#127908;';
+    if(e.error==='no-speech') setStatus('No speech heard — try again','error');
+    else if(e.error==='not-allowed') setStatus('Mic denied — check browser settings','error');
+    else setStatus('Mic error: '+e.error,'error');
   };
 
   recognition.onend = function(){
-    recording = false;
-    micBtn.classList.remove('recording');
-    micBtn.innerHTML = '&#127897;';
+    recording = false; micBtn.classList.remove('recording'); micBtn.innerHTML = '&#127908;';
     var text = spokenText.trim();
-    if(text){
-      showConfirm(text);
-    } else {
-      setStatus('No speech detected — try again', 'error');
-    }
+    if(text) showConfirm(text);
+    else if(!busy) setStatus('No speech detected — try again','error');
   };
 
   try{ recognition.start(); }
-  catch(e){
-    setStatus('Could not start mic: '+e.message, 'error');
-    recording = false;
-    micBtn.classList.remove('recording');
-    micBtn.innerHTML = '&#127897;';
-  }
+  catch(e){ setStatus('Mic error: '+e.message,'error'); recording=false; micBtn.classList.remove('recording'); micBtn.innerHTML='&#127908;'; }
 });
 
-sendBtn.addEventListener('click', function(){
-  var t = txtInput.value.trim(); if(!t) return;
-  txtInput.value = ''; sendToAI(t);
-});
-txtInput.addEventListener('keydown', function(e){ if(e.key==='Enter') sendBtn.click(); });
-
+// ── Reset ──
 resetBtn.addEventListener('click', async function(){
-  await fetch('/reset', {method:'POST'});
+  await fetch('/reset',{method:'POST'});
   chatEl.innerHTML = ''; chatEl.appendChild(welcome);
-  welcome.style.display = 'flex'; setStatus('Cleared'); busy=false;
+  welcome.style.display = 'flex';
+  uploadedImages = []; updatePreview();
+  setStatus('New chat started'); busy=false;
+});
+
+// ── Drag & drop images ──
+document.body.addEventListener('dragover', function(e){ e.preventDefault(); });
+document.body.addEventListener('drop', function(e){
+  e.preventDefault();
+  var files = Array.from(e.dataTransfer.files);
+  files.forEach(function(file){
+    if(!file.type.startsWith('image/')) return;
+    var reader = new FileReader();
+    reader.onload = function(ev){
+      uploadedImages.push({base64: ev.target.result, name: file.name});
+      updatePreview();
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+// ── Paste images from clipboard ──
+document.addEventListener('paste', function(e){
+  var items = e.clipboardData.items;
+  for(var i=0;i<items.length;i++){
+    if(items[i].type.indexOf('image') !== -1){
+      var file = items[i].getAsFile();
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        uploadedImages.push({base64: ev.target.result, name: 'pasted-image.png'});
+        updatePreview();
+      };
+      reader.readAsDataURL(file);
+    }
+  }
 });
 </script>
 </body>
