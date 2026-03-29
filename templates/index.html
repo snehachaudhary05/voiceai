@@ -6,7 +6,7 @@
   <title>VoiceAI — Smart Assistant</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
     body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e0e0e0;height:100vh;display:flex;flex-direction:column}
@@ -197,19 +197,24 @@ var busy = false, pendingText = '';
 var uploadedImages = []; // array of {base64, name}
 
 // ── Markdown renderer config ──
-marked.setOptions({
-  highlight: function(code, lang){
-    if(lang && hljs.getLanguage(lang)) return hljs.highlight(code,{language:lang}).value;
-    return hljs.highlightAuto(code).value;
-  },
-  breaks: true
-});
+if(typeof marked !== 'undefined'){
+  marked.setOptions({ breaks: true });
+}
 
 function setStatus(msg, cls){ statusEl.textContent = msg; statusEl.className = cls || ''; }
 
 function renderMarkdown(text){
-  try{ return marked.parse(text); }
-  catch(e){ return text.replace(/\n/g,'<br>'); }
+  try{
+    if(typeof marked !== 'undefined'){
+      var html = marked.parse(text);
+      // Highlight code blocks after rendering
+      var tmp = document.createElement('div');
+      tmp.innerHTML = html;
+      tmp.querySelectorAll('pre code').forEach(function(block){ hljs.highlightElement(block); });
+      return tmp.innerHTML;
+    }
+    return text.replace(/\n/g,'<br>');
+  } catch(e){ return text.replace(/\n/g,'<br>'); }
 }
 
 function addMsg(role, text, images){
