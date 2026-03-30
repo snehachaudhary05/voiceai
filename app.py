@@ -57,6 +57,11 @@ Always aim to be more helpful and detailed than any other AI assistant."""
 ]
 
 
+@app.errorhandler(Exception)
+def handle_exception(e):
+    print(f"Unhandled error: {e}", flush=True)
+    return jsonify({"error": str(e)}), 500
+
 @app.after_request
 def no_cache(response):
     response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -74,7 +79,9 @@ def index():
 @app.route("/chat", methods=["POST"])
 def chat():
     """Handles both text-only and vision (image+text) requests."""
-    data = request.get_json()
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "Invalid JSON in request"}), 400
     user_text = data.get("text", "").strip()
     images = data.get("images", [])  # list of base64 data URIs
 
